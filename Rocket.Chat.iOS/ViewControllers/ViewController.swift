@@ -43,10 +43,10 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     override func viewWillAppear(animated: Bool) {
         
         
-        
         let ad = UIApplication.sharedApplication().delegate as! AppDelegate
         meteor = ad.meteorClient
-
+        //Subscribe to rocketchat_message collection for the GENERAL channel
+        self.meteor.addSubscription("messages", withParameters: ["GENERAL"])
         
         //After login join general room
 
@@ -60,7 +60,10 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                 } else {
                     
 //                    print("\(response)\n")
-
+                    
+                    
+                    //Add observer to handle incoming messages
+                    NSNotificationCenter.defaultCenter().addObserver(self, selector: "didReceiveUpdate:", name: "rocketchat_message_added", object: nil)
                 }
             
         })
@@ -73,7 +76,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         //Get the 50 past messages to fill the tableview
         //This is just temporary. Later the RoomHistoryManager will handle the way the messages are coming in
         let now = NSDate()
-
+        
         let formData = NSDictionary(dictionary: [
             "$date": now.timeIntervalSince1970*1000
             ])
@@ -86,8 +89,8 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                 return
             
             } else {
-                
-//                print(response!["result"]!)
+        
+                print(response!["result"]!)
           
                 //JSON Handling
                 let result = JSON(response)
@@ -129,11 +132,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                 self.bottomIndexPath = NSIndexPath(forRow: self.chatMessages.count, inSection: 0)
                 self.mainTableview.scrollToRowAtIndexPath(self.bottomIndexPath, atScrollPosition: UITableViewScrollPosition.Bottom, animated: false)
                 
-                //Subscribe to rocketchat_message collection for the GENERAL channel
-                self.meteor.addSubscription("messages", withParameters: ["GENERAL"])
-                
-                //Add observer to handle incoming messages
-                NSNotificationCenter.defaultCenter().addObserver(self, selector: "didReceiveUpdate:", name: "rocketchat_message_added", object: nil)
+
 
 
             }
@@ -143,6 +142,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     }
     
 
+    
 
     
     override func viewDidLoad() {
@@ -377,7 +377,8 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     //Function to close the keyboard when send button is pressed
     @IBAction func sendMsg(sender: AnyObject) {
         
-        
+ 
+
         
         var messageObject = NSDictionary()
         messageObject = [
@@ -392,7 +393,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                 return
             }else{
                 self.composeMsg.text = ""
-                print(response)
+//                print(response)
             }
             
         })
